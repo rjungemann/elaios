@@ -257,6 +257,12 @@ release a new version, update the version number in `version.rb`, and then run
 git commits and tags, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
 
+## TODO
+
+* Finish filling in examples in the README.
+* More strenuously test threading in specs.
+* Fiber examples.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at
