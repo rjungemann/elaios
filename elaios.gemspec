@@ -18,9 +18,10 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'simple-queue', '~> 0.1.0'
-  spec.add_dependency 'eventmachine', '1.2.0.1'
-  spec.add_dependency 'sinatra', '1.4.7'
   spec.add_development_dependency 'bundler', '~> 1.12'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
+  spec.add_development_dependency 'eventmachine', '~> 1.2.0.1'
+  spec.add_development_dependency 'sinatra', '~> 1.4.7'
+  spec.add_development_dependency 'stompserver_ng', '~> 1.0.6'
 end
