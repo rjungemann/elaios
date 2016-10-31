@@ -209,11 +209,10 @@ loop do
     end
 
     # Outgoing socket data.
-    Thread.new do
-      loop do
-        result = elaios_server.pop
-        socket.puts(result) if result
-      end
+    loop do
+      result = elaios_server.pop
+      socket.puts(result) if result
+      sleep(Float::MIN)
     end
   end
 end
@@ -261,7 +260,8 @@ git commits and tags, and push the `.gem` file to
 
 * Finish filling in examples in the README.
 * More strenuously test threading in specs.
-* Fiber examples.
+* Finish filling in STOMP spec and examples.
+* Come up with some fiber examples.
 
 ## Contributing
 

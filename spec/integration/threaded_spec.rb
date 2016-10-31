@@ -43,12 +43,11 @@ describe Elaios, integration: true do
           end
 
           # Outgoing socket data.
-          Thread.new do
-            loop do
-              raise StopIteration if done
-              result = elaios_server.pop
-              socket.puts(result) if result
-            end
+          loop do
+            raise StopIteration if done
+            result = elaios_server.pop
+            socket.puts(result) if result
+            sleep(Float::MIN)
           end
         end
       end
