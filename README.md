@@ -1,6 +1,6 @@
 # Elaios
 
-Elaios is a protocol-agnostic library for writing JSON-RPC clients and servers.
+Elaios is a transport-agnostic library for writing JSON-RPC clients and servers.
 It can be used over TCP, HTTP, STOMP, and other protocols, and can be used with
 threaded-, evented-, or fiber-based code.
 
@@ -255,6 +255,30 @@ release a new version, update the version number in `version.rb`, and then run
 `bundle exec rake release`, which will create a git tag for the version, push
 git commits and tags, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
+
+## Changelog
+
+### 0.1.0
+
+Initial commit.
+
+### 0.1.1
+
+Add more examples and bump Sinatra version for better compatibilty.
+
+### 0.1.2
+
+Added some STOMP specs.
+
+### 0.1.3
+
+Fix the description and add some more info to the README.
+
+### 0.2.0
+
+Rename `Elaios::Client` to `Elaios::Requester` and `Elaios::Server` to
+`Elaios::Responder`. This is a non-breaking change (I kept aliases around so as
+to not break any existing users of the library).
 
 ## TODO
 

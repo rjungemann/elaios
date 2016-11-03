@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Roger Jungemann']
   spec.email         = ['roger@thefifthcircuit.com']
 
-  spec.summary       = %q{A protocol-agnostic JSON-RPC client-server library.}
+  spec.summary       = %q{A transport-agnostic JSON-RPC client-server library.}
   spec.homepage      = 'https://github.com/rjungemann/elaios'
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
