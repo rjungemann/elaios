@@ -1,18 +1,18 @@
 require 'spec_helper'
 
-describe Elaios::Server do
+describe Elaios::Responder do
   [:push, :<<, :enq].each do |name|
     describe "##{name}" do
-      it 'pushes a message to the server for processing' do
+      it 'pushes a message to the responder for processing' do
         requests = []
-        server = Elaios::Server.new
-        server.foo do |data|
+        responder = Elaios::Responder.new
+        responder.foo do |data|
           raise 'This method should not be called.'
         end
-        server.bar do |data|
+        responder.bar do |data|
           requests << data
         end
-        server.send(name, '{"method":"bar","id":1,"params":[1,2,3]}')
+        responder.send(name, '{"method":"bar","id":1,"params":[1,2,3]}')
         expect(requests).to eq([
           { 'method' => 'bar', 'id' => 1, 'params' => [1, 2, 3] }
         ])
@@ -22,44 +22,44 @@ describe Elaios::Server do
 
   [:pop, :deq, :shift].each do |name|
     describe "##{name}" do
-      it 'pops a message off the server to be sent to the client' do
+      it 'pops a message off the responder to be sent to the client' do
         responses = []
-        server = Elaios::Server.new
-        expect(server.send(name)).to be_nil
-        server.res('foo', 1, [1, 2, 3])
-        server.err('bar', 2, 'Something wrong happened.')
-        expect(server.pop).to \
+        responder = Elaios::Responder.new
+        expect(responder.send(name)).to be_nil
+        responder.res('foo', 1, [1, 2, 3])
+        responder.err('bar', 2, 'Something wrong happened.')
+        expect(responder.pop).to \
           eq('{"jsonrpc":"2.0","method":"foo","result":[1,2,3],"id":1}')
-        expect(server.pop).to \
+        expect(responder.pop).to \
           eq('{"jsonrpc":"2.0","method":"bar","error":"Something wrong happened.","id":2}')
-        expect(server.pop).to be_nil
+        expect(responder.pop).to be_nil
       end
     end
   end
 
   [:process, :pushpop, :push_pop].each do |name|
     describe "##{name}" do
-      it 'pushes a message to the server, updates it, and pops it off' do
+      it 'pushes a message to the responder, updates it, and pops it off' do
         requests = []
-        server = Elaios::Server.new
-        server.foo do |data|
+        responder = Elaios::Responder.new
+        responder.foo do |data|
           raise 'This method should not be called.'
         end
-        server.bar do |data|
+        responder.bar do |data|
           requests << data
           res('bar', 1, [4, 5])
         end
-        server.baz do |data|
+        responder.baz do |data|
           requests << data
           res('baz', 2, 'Some error occurred.')
         end
-        response = server.send(name, '{"method":"bar","id":1,"params":[1,2,3]}')
+        response = responder.send(name, '{"method":"bar","id":1,"params":[1,2,3]}')
         expect(response).to \
           eq('{"jsonrpc":"2.0","method":"bar","result":[4,5],"id":1}')
-        response = server.send(name, '{"method":"baz","id":2,"params":[4,5]}')
+        response = responder.send(name, '{"method":"baz","id":2,"params":[4,5]}')
         expect(response).to \
           eq('{"jsonrpc":"2.0","method":"baz","result":"Some error occurred.","id":2}')
-        expect(server.pop).to be_nil
+        expect(responder.pop).to be_nil
         expect(requests).to eq([
           { 'method' => 'bar', 'id' => 1, 'params' => [1, 2, 3] },
           { 'method' => 'baz', 'id' => 2, 'params' => [4, 5] }
@@ -74,25 +74,25 @@ describe Elaios::Server do
 
   [:res, :response].each do |name|
     describe "##{name}" do
-      it 'generates a success response on the server for popping'
+      it 'generates a success response on the responder for popping'
     end
   end
 
   [:err, :error].each do |name|
     describe "##{name}" do
-      it 'generates an error response on the server for popping'
+      it 'generates an error response on the responder for popping'
     end
   end
 
   describe '#update' do
-    it 'processes one request to the server'
+    it 'processes one request to the responder'
   end
 
   describe '#unsafe_push' do
-    it 'pushes a message to the server for processing'
+    it 'pushes a message to the responder for processing'
   end
 
   describe '#unsafe_pop' do
-    it 'pops a message off the server to be sent to the client'
+    it 'pops a message off the responder to be sent to the client'
   end
 end

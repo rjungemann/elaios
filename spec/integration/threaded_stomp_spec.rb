@@ -23,6 +23,7 @@ describe Elaios, integration: true do
       end
     end
 
+    # Wait for the server to become available.
     loop do
       begin
         s = TCPSocket.new('localhost', @port)
@@ -39,49 +40,49 @@ describe Elaios, integration: true do
     request_queue = '/queue/test'
     response_queue = '/queue/test-response'
 
-    elaios_client = Elaios::Client.new
+    elaios_requester = Elaios::Requester.new
     requester_client = Stomp::Client.new(auth_login, auth_passcode, 'localhost', @port)
 
     # Incoming socket data.
     requester_client.subscribe(response_queue) do |msg|
-      elaios_client << msg.body
+      elaios_requester << msg.body
     end
 
     # Outgoing socket data.
     Thread.new do
       loop do
         break if done
-        result = elaios_client.pop
+        result = elaios_requester.pop
         requester_client.publish(request_queue, result) if result
       end
     end
 
-    elaios_server = Elaios::Server.new
+    elaios_responder = Elaios::Responder.new
     responder_client = Stomp::Client.new(auth_login, auth_passcode, 'localhost', @port)
 
     # Create a server handler.
-    elaios_server.ping do |data|
+    elaios_responder.ping do |data|
       requests << data
       res(data['method'], data['id'], { foo: 'bar' })
     end
 
     # Incoming socket data.
     responder_client.subscribe(request_queue) do |msg|
-      elaios_server << msg.body
+      elaios_responder << msg.body
     end
 
     # Outgoing socket data.
     Thread.new do
       loop do
         break if done
-        result = elaios_server.pop
+        result = elaios_responder.pop
         responder_client.publish(response_queue, result) if result
       end
     end
 
     # Try making some service calls.
-    elaios_client.ping('foo')
-    elaios_client.ping('foo') do |response|
+    elaios_requester.ping('foo')
+    elaios_requester.ping('foo') do |response|
       responses << response
       done = true
     end

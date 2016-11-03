@@ -20,15 +20,15 @@ describe Elaios, integration: true do
     server = TCPServer.open(@port)
     Thread.new do
       loop do
-        raise StopIteration if done
+        break if done
 
         # New incoming socket connection.
         Thread.fork(server.accept) do |socket|
           # We need a new Elaios instance for every incoming connection.
-          elaios_server = Elaios::Server.new
+          elaios_responder = Elaios::Responder.new
 
           # Create a server handler.
-          elaios_server.ping do |data|
+          elaios_responder.ping do |data|
             requests << data
             res(data['method'], data['id'], { foo: 'bar' })
           end
@@ -36,16 +36,16 @@ describe Elaios, integration: true do
           # Incoming socket data.
           Thread.new do
             loop do
-              raise StopIteration if done
+              break if done
               result = socket.gets.chomp
-              elaios_server << result
+              elaios_responder << result
             end
           end
 
           # Outgoing socket data.
           loop do
-            raise StopIteration if done
-            result = elaios_server.pop
+            break if done
+            result = elaios_responder.pop
             socket.puts(result) if result
             sleep(Float::MIN)
           end
@@ -55,29 +55,29 @@ describe Elaios, integration: true do
 
     # TCP client.
     socket = TCPSocket.open('127.0.0.1', @port)
-    elaios_client = Elaios::Client.new
+    elaios_requester = Elaios::Requester.new
 
     # Incoming socket data.
     Thread.new do
       loop do
-        raise StopIteration if done
+        break if done
         result = socket.gets.chomp
-        elaios_client << result
+        elaios_requester << result
       end
     end
 
     # Outgoing socket data.
     Thread.new do
       loop do
-        raise StopIteration if done
-        result = elaios_client.pop
+        break if done
+        result = elaios_requester.pop
         socket.puts(result) if result
       end
     end
 
     # Try making some service calls.
-    elaios_client.ping('foo')
-    elaios_client.ping('foo') do |response|
+    elaios_requester.ping('foo')
+    elaios_requester.ping('foo') do |response|
       responses << response
       done = true
     end

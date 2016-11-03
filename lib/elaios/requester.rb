@@ -1,4 +1,4 @@
-class Elaios::Client
+class Elaios::Requester
   attr_reader :logger
 
   def initialize(options={})

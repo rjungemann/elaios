@@ -1,7 +1,7 @@
 # Elaios
 
 Elaios is a transport-agnostic library for writing JSON-RPC clients and servers.
-It can be used over TCP, HTTP, STOMP, and other protocols, and can be used with
+It can be used over TCP, HTTP, STOMP, and other transports, and can be used with
 threaded-, evented-, or fiber-based code.
 
 Furthermore, it is thread-safe, has a very simple API, and well-tested.
@@ -34,32 +34,32 @@ From your Ruby code:
 require 'elaios'
 ```
 
-### Basic client usage
+### Basic requester (client) usage
 
 ```ruby
-elaios_client = Elaios::Client.new
+elaios_requester = Elaios::Requester.new
 
 # Call a JSON-RPC method and don't expect a response.
-elaios_client.foo(['some', 'args'])
+elaios_requester.foo(['some', 'args'])
 
 # Call a JSON-RPC method and expect a response.
-elaios_client.bar(['some', 'other', 'args']) do |data|
+elaios_requester.bar(['some', 'other', 'args']) do |data|
   # Do something with the response from the server...
 end
 
-request_1 = elaios_client.pop
-request_2 = elaios_client.pop
+request_1 = elaios_requester.pop
+request_2 = elaios_requester.pop
 # Send the requests to the server somehow (they will be JSON strings)...
 
 # Get a response from the server somehow (it will be a JSON string). This will
 # trigger the callback above to be called.
-elaios_client << response
+elaios_requester << response
 ```
 
-### Basic server usage
+### Basic responder (server) usage
 
 ```ruby
-elaios_server = Elaios::Server.new
+elaios_server = Elaios::Responder.new
 
 elaios_server.foo do |data|
   # Do some processing here...
@@ -85,12 +85,12 @@ response = elaios_server.pop
 ### API
 
 ```
-# --------------
-# Elaios::Server
-# --------------
+# -----------------
+# Elaios::Responder
+# -----------------
 
-# Create a new Elaios server object.
-Elaios::Server#new(options={})
+# Create a new Elaios responder (server) object.
+Elaios::Responder#new(options={})
 
 `options` may consist of:
 
@@ -98,37 +98,37 @@ Elaios::Server#new(options={})
 * `:logger` - An optional logger object.
 
 # Push an object onto the server for processing.
-Elaios::Server#push(obj)
-Elaios::Server#<<(obj)
-Elaios::Server#enq(obj)
+Elaios::Responder#push(obj)
+Elaios::Responder#<<(obj)
+Elaios::Responder#enq(obj)
 
 # Pop a response off of the server.
-Elaios::Server#pop
-Elaios::Server#deq
-Elaios::Server#shift
+Elaios::Responder#pop
+Elaios::Responder#deq
+Elaios::Responder#shift
 
 # Push an object onto the server, update, and then pop a response off.
-Elaios::Server#process(obj)
-Elaios::Server#pushpop(obj)
-Elaios::Server#push_pop(obj)
+Elaios::Responder#process(obj)
+Elaios::Responder#pushpop(obj)
+Elaios::Responder#push_pop(obj)
 
 # Register a handler.
-Elaios::Server#method_missing(name, &block)
+Elaios::Responder#method_missing(name, &block)
 
 # Generate a success response for sending to the client.
-Elaios::Server#res(method, id, data)
-Elaios::Server#response(method, id, data)
+Elaios::Responder#res(method, id, data)
+Elaios::Responder#response(method, id, data)
 
 # Generate an error response for sending to the client.
-Elaios::Server#err(method, id, data)
-Elaios::Server#error(method, id, data)
+Elaios::Responder#err(method, id, data)
+Elaios::Responder#error(method, id, data)
 
-# --------------
-# Elaios::Client
-# --------------
+# -----------------
+# Elaios::Requester
+# -----------------
 
-# Create a new Elaios client object.
-Elaios::Client.new(options={})
+# Create a new Elaios requester (client) object.
+Elaios::Requester.new(options={})
 
 `options` may consist of:
 
@@ -136,17 +136,17 @@ Elaios::Client.new(options={})
 * `:logger` - An optional logger object.
 
 # Push an object onto the client for processing.
-Elaios::Client.push(obj)
-Elaios::Client.<<(obj)
-Elaios::Client.enq(obj)
+Elaios::Requester.push(obj)
+Elaios::Requester.<<(obj)
+Elaios::Requester.enq(obj)
 
 # Pop a response off of the client.
-Elaios::Client#pop
-Elaios::Client#deq
-Elaios::Client#shift
+Elaios::Requester#pop
+Elaios::Requester#deq
+Elaios::Requester#shift
 
 # Call a JSON-RPC method.
-Elaios::Client#method_missing(name, args=nil, &block)
+Elaios::Requester#method_missing(name, args=nil, &block)
 ```
 
 ### Threaded TCP client usage
@@ -154,28 +154,28 @@ Elaios::Client#method_missing(name, args=nil, &block)
 ```ruby
 # TCP client.
 socket = TCPSocket.open('0.0.0.0', 5000)
-elaios_client = Elaios::Client.new
+elaios_requester = Elaios::Requester.new
 
 # Incoming socket data.
 Thread.new do
   loop do
-    elaios_client << socket.gets.chomp
+    elaios_requester << socket.gets.chomp
   end
 end
 
 # Outgoing socket data.
 Thread.new do
   loop do
-    result = elaios_client.pop
+    result = elaios_requester.pop
     socket.puts(result) if result
   end
 end
 
 # Make a service call and expect no response.
-elaios_client.ping('foo')
+elaios_requester.ping('foo')
 
 # Make a service call and expect a response.
-elaios_client.ping('foo') do |response|
+elaios_requester.ping('foo') do |response|
   # Do something with the response...
 end
 ```
@@ -189,14 +189,14 @@ loop do
   # New incoming socket connection.
   Thread.fork(server.accept) do |socket|
     # We need a new Elaios instance for every incoming connection.
-    elaios_server = Elaios::Server.new
+    elaios_responder = Elaios::Responder.new
 
     # Create a server handler.
-    elaios_server.ping do |data|
+    elaios_responder.ping do |data|
       # Generate some sort of response. Note that we grab the method name and id
       # from the `data` hash.
       #
-      # Also note that within this block, `self` is the `elaios_server` object.
+      # Also note within this block, `self` is the `elaios_responder` object.
       #
       res(data['method'], data['id'], { foo: 'bar' })
     end
@@ -204,13 +204,13 @@ loop do
     # Incoming socket data.
     Thread.new do
       loop do
-        elaios_server << socket.gets.chomp
+        elaios_responder << socket.gets.chomp
       end
     end
 
     # Outgoing socket data.
     loop do
-      result = elaios_server.pop
+      result = elaios_responder.pop
       socket.puts(result) if result
       sleep(Float::MIN)
     end

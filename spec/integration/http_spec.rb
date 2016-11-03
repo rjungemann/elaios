@@ -18,8 +18,8 @@ describe Elaios, integration: true do
       end
 
       post '/rpc' do
-        elaios_server = request.env['rack.elaios_server']
-        result = elaios_server.process(request.body.read)
+        elaios_responder = request.env['rack.elaios_responder']
+        result = elaios_responder.process(request.body.read)
         (result || '')
       end
     end
@@ -29,16 +29,16 @@ describe Elaios, integration: true do
     responses = []
 
     # HTTP Server.
-    elaios_server = Elaios::Server.new
+    elaios_responder = Elaios::Responder.new
     http_server = WEBrick::HTTPServer.new({
       Port: @port,
       Logger: Logger.new(StringIO.new),
       AccessLog: Logger.new(StringIO.new),
     })
     http_server.mount('/', Rack::Handler::WEBrick, Rack::Builder.new do
-      # Inject the `elaios_server` into the server.
+      # Inject the `elaios_responder` into the server.
       use Rack::Config do |env|
-        env['rack.elaios_server'] = elaios_server
+        env['rack.elaios_responder'] = elaios_responder
       end
       # Run the Sinatra test app.
       run App.new
@@ -47,7 +47,7 @@ describe Elaios, integration: true do
       http_server.start
     end
     # Create a server handler.
-    elaios_server.ping do |data|
+    elaios_responder.ping do |data|
       requests << data
       res(data['method'], data['id'], { foo: 'bar' })
     end
@@ -68,15 +68,15 @@ describe Elaios, integration: true do
     end
 
     # HTTP client.
-    elaios_client = Elaios::Client.new
+    elaios_requester = Elaios::Requester.new
 
-    # Every time the `elaios_client` receives a message, make an HTTP request
+    # Every time the `elaios_requester` receives a message, make an HTTP request
     # and send it to the server.
     #
     Thread.new do
       loop do
         raise StopIteration if done
-        result = elaios_client.pop
+        result = elaios_requester.pop
         next unless result
         uri = URI("http://localhost:#{@port}/rpc")
         req = Net::HTTP::Post.new(uri.path)
@@ -85,15 +85,15 @@ describe Elaios, integration: true do
         Net::HTTP.start(uri.hostname, uri.port) do |http|
           http.request(req) do |res|
             result = res.body
-            elaios_client << result if result
+            elaios_requester << result if result
           end
         end
       end
     end
 
     # Make client requests.
-    elaios_client.ping('foo')
-    elaios_client.ping('foo') do |response|
+    elaios_requester.ping('foo')
+    elaios_requester.ping('foo') do |response|
       responses << response
       done = true
     end

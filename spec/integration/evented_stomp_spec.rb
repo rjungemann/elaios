@@ -27,11 +27,11 @@ describe Elaios, integration: true do
         if msg.command == 'CONNECTED'
           subscribe(@options.response_queue)
           EM::add_periodic_timer(Float::MIN) do
-            result = @options.elaios_client.pop
+            result = @options.elaios_requester.pop
             send(@options.request_queue, result) if result
           end
         else
-          @options.elaios_client << msg.body
+          @options.elaios_requester << msg.body
         end
       end
     end
@@ -51,11 +51,11 @@ describe Elaios, integration: true do
         if msg.command == 'CONNECTED'
           subscribe(@options.request_queue)
           EM::add_periodic_timer(Float::MIN) do
-            result = @options.elaios_server.pop
+            result = @options.elaios_responder.pop
             send(@options.response_queue, result) if result
           end
         else
-          @options.elaios_server << msg.body
+          @options.elaios_responder << msg.body
         end
       end
     end
@@ -65,12 +65,12 @@ describe Elaios, integration: true do
     EM.run do
       start_stomp_server!(@port)
 
-      elaios_server = Elaios::Server.new
-      elaios_server.ping do |data|
+      elaios_responder = Elaios::Responder.new
+      elaios_responder.ping do |data|
         requests << data
         res(data['method'], data['id'], { foo: 'bar' })
       end
-      elaios_client = Elaios::Client.new
+      elaios_requester = Elaios::Requester.new
       options = OpenStruct.new({
         auth: {
           login: 'guest',
@@ -78,15 +78,15 @@ describe Elaios, integration: true do
         },
         request_queue: '/queue/test',
         response_queue: '/queue/test-response',
-        elaios_server: elaios_server,
-        elaios_client: elaios_client
+        elaios_responder: elaios_responder,
+        elaios_requester: elaios_requester
       })
       EM.connect('localhost', @port, StompRequester, options)
       EM.connect('localhost', @port, StompResponder, options)
 
       EM.next_tick do
-        elaios_client.ping('foo')
-        elaios_client.ping('foo') do |data|
+        elaios_requester.ping('foo')
+        elaios_requester.ping('foo') do |data|
           responses << data
           EM.stop_event_loop
         end

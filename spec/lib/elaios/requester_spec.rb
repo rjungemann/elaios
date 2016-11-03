@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Elaios::Client do
+describe Elaios::Requester do
   [:push, :<<, :enq].each do |name|
     describe "##{name}" do
       it 'pushes a message to the client for processing'

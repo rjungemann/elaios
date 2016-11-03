@@ -19,7 +19,7 @@ describe Elaios, integration: true do
       end
 
       def receive_data(data)
-        @options.elaios_server << data
+        @options.elaios_responder << data
       end
     end
 
@@ -30,7 +30,7 @@ describe Elaios, integration: true do
       end
 
       def receive_data(data)
-        @options.elaios_client << data
+        @options.elaios_requester << data
       end
     end
 
@@ -41,29 +41,29 @@ describe Elaios, integration: true do
       options = OpenStruct.new({})
 
       # Start the server.
-      options.elaios_server = Elaios::Server.new
+      options.elaios_responder = Elaios::Responder.new
       EM::start_server('127.0.0.1', @port, ServerSocket, options)
-      options.elaios_server.ping do |data|
+      options.elaios_responder.ping do |data|
         requests << data
         res(data['method'], data['id'], { foo: 'bar' })
       end
       EM::add_periodic_timer(Float::MIN) do
-        result = options.elaios_server.pop
+        result = options.elaios_responder.pop
         options.server_socket.send_data(result + "\n") if result
       end
 
       # Start the client.
-      options.elaios_client = Elaios::Client.new
+      options.elaios_requester = Elaios::Requester.new
       EM::connect('127.0.0.1', @port, ClientSocket, options)
       EM::add_periodic_timer(Float::MIN) do
-        result = options.elaios_client.pop
+        result = options.elaios_requester.pop
         options.client_socket.send_data(result + "\n") if result
       end
 
       # Send some messages to the server.
       EM::next_tick do
-        options.elaios_client.ping('foo')
-        options.elaios_client.ping('foo') do |response|
+        options.elaios_requester.ping('foo')
+        options.elaios_requester.ping('foo') do |response|
           responses << response
           EM::stop_event_loop
         end
