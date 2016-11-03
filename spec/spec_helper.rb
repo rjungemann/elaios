@@ -10,6 +10,7 @@ require 'webrick'
 require 'eventmachine'
 require 'sinatra/base'
 require 'stomp_server_ng'
+require 'stomp'
 
 require_relative 'helpers/integration_helpers'
 

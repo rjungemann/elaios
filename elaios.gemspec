@@ -24,4 +24,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'eventmachine', '~> 1.2.0.1'
   spec.add_development_dependency 'sinatra', '~> 2.0.0.beta2'
   spec.add_development_dependency 'stompserver_ng', '~> 1.0.6'
+  spec.add_development_dependency 'stomp', '~> 1.4.3'
 end

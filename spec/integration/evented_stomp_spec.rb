@@ -11,7 +11,7 @@ describe Elaios, integration: true do
     end
   end
 
-  it 'works when used with a STOMP service' do
+  it 'works in an evented manner when used with a STOMP service' do
     module StompRequester
       include EM::Protocols::Stomp
 
