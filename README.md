@@ -4,7 +4,7 @@ Elaios is a transport-agnostic library for writing JSON-RPC clients and servers.
 It can be used over TCP, HTTP, STOMP, and other transports, and can be used with
 threaded-, evented-, or fiber-based code.
 
-Furthermore, it is thread-safe, has a very simple API, and well-tested.
+Furthermore, it is thread-safe, has a very simple API, and is well-tested.
 
 ## Installation
 
@@ -241,6 +241,12 @@ any HTTP server library with Elaios.
 **TODO:** Fill this in.
 
 ### STOMP usage
+
+As shown in [Chapter 6 of the RabbitMQ tutorial](http://www.rabbitmq.com/tutorials/tutorial-six-python.html), you can use two queues to construct an RPC system.
+
+**TODO:** Fill this in.
+
+### AMQP usage
 
 **TODO:** Fill this in.
 
