@@ -286,11 +286,25 @@ Rename `Elaios::Client` to `Elaios::Requester` and `Elaios::Server` to
 `Elaios::Responder`. This is a non-breaking change (I kept aliases around so as
 to not break any existing users of the library).
 
+### 0.3.0
+
+Added support for promises instead of, or in addition to, callbacks.
+
 ## TODO
 
+* Consider alternative approaches to error responses.
 * Finish filling in examples in the README.
 * More strenuously test threading in specs.
 * Finish filling in STOMP spec and examples.
+* AMQP tests.
+* AMQP examples.
+* Consider promise.rb, allowing consumers to provide their own promise class.
+  More info at https://github.com/lgierth/promise.rb
+* Test default promise functionality.
+* Document default promise functionality.
+* Test overriding promise functionality.
+* Document overriding promise functionality.
+* Consider making sure threads and reactors are cleaned up when tests go bad.
 * Come up with some fiber examples.
 
 ## Contributing
